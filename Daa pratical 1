@@ -1,0 +1,251 @@
+#include <iostream>
+#include <vector>
+#include <random>
+#include <chrono>
+#include <algorithm>
+
+using namespace std;
+using namespace chrono;
+
+// --------------------------------------------------
+// Bubble Sort - Optimized Version
+// --------------------------------------------------
+void bubbleSort(vector<int>& data)
+{
+    int size = data.size();
+
+    for (int pass = 0; pass < size - 1; pass++)
+    {
+        bool changed = false;
+
+        for (int i = 0; i < size - pass - 1; i++)
+        {
+            if (data[i] > data[i + 1])
+            {
+                swap(data[i], data[i + 1]);
+                changed = true;
+            }
+        }
+
+        if (!changed)
+            break;
+    }
+}
+
+// --------------------------------------------------
+// Selection Sort
+// --------------------------------------------------
+void selectionSort(vector<int>& data)
+{
+    int size = data.size();
+
+    for (int pos = 0; pos < size - 1; pos++)
+    {
+        int smallest = pos;
+
+        for (int i = pos + 1; i < size; i++)
+        {
+            if (data[i] < data[smallest])
+                smallest = i;
+        }
+
+        if (smallest != pos)
+            swap(data[pos], data[smallest]);
+    }
+}
+
+// --------------------------------------------------
+// Insertion Sort
+// --------------------------------------------------
+void insertionSort(vector<int>& data)
+{
+    int size = data.size();
+
+    for (int current = 1; current < size; current++)
+    {
+        int value = data[current];
+        int position = current - 1;
+
+        while (position >= 0 && data[position] > value)
+        {
+            data[position + 1] = data[position];
+            position--;
+        }
+
+        data[position + 1] = value;
+    }
+}
+
+// --------------------------------------------------
+// Merge Sort
+// --------------------------------------------------
+void combine(vector<int>& data, int left, int middle, int right)
+{
+    vector<int> first;
+    vector<int> second;
+
+    for (int i = left; i <= middle; i++)
+        first.push_back(data[i]);
+
+    for (int i = middle + 1; i <= right; i++)
+        second.push_back(data[i]);
+
+    int i = 0;
+    int j = 0;
+    int index = left;
+
+    while (i < first.size() && j < second.size())
+    {
+        if (first[i] <= second[j])
+            data[index++] = first[i++];
+        else
+            data[index++] = second[j++];
+    }
+
+    while (i < first.size())
+        data[index++] = first[i++];
+
+    while (j < second.size())
+        data[index++] = second[j++];
+}
+
+void mergeSort(vector<int>& data, int left, int right)
+{
+    if (left >= right)
+        return;
+
+    int middle = left + (right - left) / 2;
+
+    mergeSort(data, left, middle);
+    mergeSort(data, middle + 1, right);
+
+    combine(data, left, middle, right);
+}
+
+// --------------------------------------------------
+// Quick Sort
+// --------------------------------------------------
+int divide(vector<int>& data, int low, int high)
+{
+    int pivot = data[low];
+    int left = low + 1;
+    int right = high;
+
+    while (true)
+    {
+        while (left <= right && data[left] <= pivot)
+            left++;
+
+        while (left <= right && data[right] >= pivot)
+            right--;
+
+        if (left > right)
+            break;
+
+        swap(data[left], data[right]);
+    }
+
+    swap(data[low], data[right]);
+
+    return right;
+}
+
+void quickSort(vector<int>& data, int low, int high)
+{
+    if (low >= high)
+        return;
+
+    int pivotPosition = divide(data, low, high);
+
+    quickSort(data, low, pivotPosition - 1);
+    quickSort(data, pivotPosition + 1, high);
+}
+
+// --------------------------------------------------
+// Function to calculate sorting time
+// --------------------------------------------------
+long long calculateTime(vector<int> data, int method)
+{
+    auto begin = high_resolution_clock::now();
+
+    switch (method)
+    {
+        case 1:
+            bubbleSort(data);
+            break;
+
+        case 2:
+            selectionSort(data);
+            break;
+
+        case 3:
+            insertionSort(data);
+            break;
+
+        case 4:
+            mergeSort(data, 0, data.size() - 1);
+            break;
+
+        case 5:
+            quickSort(data, 0, data.size() - 1);
+            break;
+    }
+
+    auto finish = high_resolution_clock::now();
+
+    return duration_cast<microseconds>(finish - begin).count();
+}
+
+// --------------------------------------------------
+// Main Function
+// --------------------------------------------------
+int main()
+{
+    const int SIZE = 100;
+
+    vector<int> numbers(SIZE);
+
+    // Random number generator
+    random_device rd;
+    mt19937 generator(rd());
+    uniform_int_distribution<int> distribution(1, 999);
+
+    // Generate random values
+    for (int& value : numbers)
+    {
+        value = distribution(generator);
+    }
+
+    cout << "============================================\n";
+    cout << "       SORTING ALGORITHM COMPARISON\n";
+    cout << "============================================\n";
+
+    cout << "Number of Elements : " << SIZE << "\n\n";
+
+    cout << "Algorithm          Execution Time\n";
+    cout << "--------------------------------------------\n";
+
+    cout << "Bubble Sort        : "
+         << calculateTime(numbers, 1)
+         << " microseconds\n";
+
+    cout << "Selection Sort     : "
+         << calculateTime(numbers, 2)
+         << " microseconds\n";
+
+    cout << "Insertion Sort     : "
+         << calculateTime(numbers, 3)
+         << " microseconds\n";
+
+    cout << "Merge Sort         : "
+         << calculateTime(numbers, 4)
+         << " microseconds\n";
+
+    cout << "Quick Sort         : "
+         << calculateTime(numbers, 5)
+         << " microseconds\n";
+
+    cout << "============================================\n";
+
+    return 0;
+}
